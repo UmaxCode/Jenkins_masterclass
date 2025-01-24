@@ -4,6 +4,7 @@ pipeline {
     environment {
         // Define any environment variables here if needed
         DOCKER_IMAGE = "umaxcode/jenkins-masterclass"
+        WORK_SPACE = "maven-samples/single-module"
     }
 
     stages {
@@ -21,39 +22,39 @@ pipeline {
         }
         stage('Build') {
             steps {
-                // Build the Spring Boot application using Maven
-                // sh './mvnw clean package -DskipTests'
-                sh '''
-                    ls
-                    pwd
-                    echo "This is my Build stage"
-                '''
+                // Build the java application using Maven
+                dir("${WORK_SPACE}"){
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
         stage('Test') {
             steps {
                 // Run tests using Maven
-                // sh './mvnw test'
-                sh 'echo "This is my Test stage"'
+                dir("${WORK_SPACE}"){
+                    sh 'mvn test'
+                }
             }
         }
         stage('Docker Build') {
             steps {
                 // Build the Docker image
-                // sh 'docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} .'
-                sh ' echo "This is my Docker Build stage"'
+                dir("${WORK_SPACE}"){
+                    sh 'docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} .'
+                }
             }
         }
         stage('Docker Push') {
             steps {
-                // Push the Docker image to Docker Hub (or another registry)
-                // withCredentials([string(credentialsId: 'c_id', variable: 'DOCKER_PASSWORD')]) {
-                //     sh '''
-                //         echo "$DOCKER_PASSWORD" | docker login -u umaxcode --password-stdin
-                //         docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
-                //     '''
-                // }
-                sh ' echo "This is my Docker Push stage"'
+                // Push the Docker image to Docker Hub 
+                withCredentials([usernamePassword(credentialsId: params.CREDENTIALS_ID,
+                 usernameVariable: 'DOCKER_USERNAME',
+                 passwordVariable: 'DOCKER_PASSWORD')]) {
+                    sh '''
+                        echo "$DOCKER_PASSWORD" | docker login -u $DOCKER_USERNAME --password-stdin
+                        docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
+                    '''
+                }
             }
         }
     }
