@@ -53,7 +53,7 @@ pipeline {
                 //         docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}
                 //     '''
                 // }
-                sh ' ehco "This is my Docker Push stage"'
+                sh ' echo "This is my Docker Push stage"'
             }
         }
     }
